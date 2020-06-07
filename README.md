@@ -1,1 +1,6 @@
-This utility requires a client ID and OAuth. More information here: https://dev.twitch.tv/docs/authentication/
+# Twitch Clipper
+This utility requires a client ID and OAuth. More information here: https://dev.twitch.tv/docs/authentication/.
+
+Usage is as follows: 
+`python main.py --client <CLIENT ID> 
+--oauth <OAUTH> --user <USER>`
