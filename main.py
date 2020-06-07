@@ -5,7 +5,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
-from zipfile import ZipFile
+from webdriver_manager.chrome import ChromeDriverManager
+import argparse
+import chromedriver_binary
 import json
 import os
 import re
@@ -60,12 +62,13 @@ def collect(name):
         # print(json.dumps(response.json(), indent=indent))
     print('{0} clips found. '.format(cout))
 
-def download():
+def download(name):
     # print(slugs)
+    os.makedirs('{0}-clips'.format(name), exist_ok=True)
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
     options.add_argument("--mute-audio")
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     for i in tqdm(range(len(slugs))):
         driver.get(slugs[i])
         try:
@@ -75,24 +78,34 @@ def download():
             filename_ext = filename + '.mp4'
             i = 1
             if os.path.exists(filename_ext):
-                filename_ext = filename + '({0})'.format(i) + '.mp4'
+                filename_ext = filename + ' ({0})'.format(i) + '.mp4'
                 while os.path.exists(filename_ext):
                     i = i + 1
-                    filename_ext = filename + '({0})'.format(i) + '.mp4'
-            urllib.request.urlretrieve(src, filename_ext)
+                    filename_ext = filename + ' ({0})'.format(i) + '.mp4'
+            urllib.request.urlretrieve(src, '{0}-clips/'.format(name) + filename_ext)
 
         except:
             # print('Failed to download clip. ')
             continue
 
-def main(args):
+    driver.quit()
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-c', '--client', required=True,
+                    help="client id associated with your Twitch account")
+    ap.add_argument('-o', '--oauth', required=True,
+                    help="oauth code associated with your Twitch account")
+    ap.add_argument('-u', '--user', required=True,
+                    help="name of the Twitch channel to download from")
+    args = vars(ap.parse_args())
     global client_id
-    client_id = args[2]
     global oauth
-    oauth = args[3]
-    verify(args[1])
-    collect(args[1])
-    download()
+    client_id = args['client']
+    oauth = args['oauth']
+    verify(args['user'])
+    collect(args['user'])
+    download(args['user'])
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
