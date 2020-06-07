@@ -1,0 +1,1 @@
+This utility requires a client ID and OAuth. More information here: https://dev.twitch.tv/docs/authentication/
