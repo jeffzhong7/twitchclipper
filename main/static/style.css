@@ -1,0 +1,9 @@
+html {
+  background: #eeeeee;
+}
+
+nav {
+  align-items: center;
+  background: #dddddd;
+  display: flex;
+}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Clip Downloader{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="POST">
+    <label for="client_id">Client ID</label>
+    <input name="client_id" id="client_id" required>
+    <label for="oauth">OAuth</label>
+    <input name="oauth" id="oauth" required>
+	<label for="broadcaster">Broadcaster</label>
+    <input name="broadcaster" id="broadcaster" required>
+    <input type="submit" value="Get Clips">
+  </form>
+{% endblock %}
