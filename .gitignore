@@ -1,4 +1,6 @@
 .env
+/env
+/main/__pycache__
+/main/clips
 /main/debug.log
 /main/instance
-/main/clips

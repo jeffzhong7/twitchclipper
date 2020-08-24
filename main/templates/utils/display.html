@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Viewer Stats{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="POST" action="">
+    Broadcaster: {{ form.broadcaster }}
+	Client ID: {{ form.client_id }}
+	OAuth: {{ form.oauth }}
+    <input type="submit" value="Show Stats">
+  </form>
+
+  {% if form.broadcaster.data %}
+    <p>Please select a valid streamer</p>
+    {{ response_json }}
+  {% endif %}
+{% endblock %}

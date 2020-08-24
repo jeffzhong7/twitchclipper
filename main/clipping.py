@@ -21,78 +21,87 @@ import urllib.request
 import sys
 import time
 
-indent = 2
+INDENT = 2
+
 
 def verify(client_id, oauth, broadcaster):
-	response = requests.get('https://id.twitch.tv/oauth2/validate',
-							headers={'Authorization': 'OAuth ' + oauth})
-	# print(json.dumps(response.json(), indent=indent))
+	url = 'https://id.twitch.tv/oauth2/validate'
+	headers = {'Authorization': 'OAuth ' + oauth}
+	
+	response = requests.get(url, headers=headers)
+	# print(json.dumps(response.json(), indent=INDENT))
 	
 	if response.status_code != 200:
 		print('Status {0}: error'.format(response.status_code))
 		return
 	else:
 		print('Status {0}: verified client. '.format(response.status_code))
-
-		response = requests.get('https://api.twitch.tv/helix/users',
-								headers={'Authorization': 'Bearer ' + oauth, 'Client-ID': client_id},
-								params={'login': broadcaster})
+		
+		url = current_app.config['BASE_URL'] + 'users'
+		headers = {'Authorization': 'Bearer ' + oauth, 'Client-ID': client_id}
+		params = (('login', 'kenthestraw'),)
+		
+		response = requests.get(url, headers=headers, params=params)
+		print(json.dumps(response.json(), indent=INDENT))
+		
 		data = response.json()['data'][0]
 		print('Querying clips from {0} (id: {1})'.format(data['display_name'], data['id']))
-		# print(json.dumps(response.json(), indent=indent))
 		
 		return data['id']
 		
 	
 def collect(client_id, oauth, broadcaster_id):
 	clips_data = {}
-	response = requests.get('https://api.twitch.tv/helix/clips',
-							headers={'Authorization': 'Bearer ' + oauth, 'Client-ID': client_id},
-							params={'broadcaster_id': broadcaster_id, 'first': '100'})
 	
-	# print(json.dumps(response.json(), indent=indent))
+	url = current_app.config['BASE_URL'] + 'clips'
+	headers={'Authorization': 'Bearer ' + oauth, 'Client-ID': client_id}
+	params={'broadcaster_id': broadcaster_id, 'first': '100'}
+	
+	response = requests.get(url, headers=headers, params=params)
+	# print(json.dumps(response.json(), indent=INDENT))
 	
 	while response.json()['pagination']:
 		clips = response.json()['data']
 		for clip in clips:
-			url = clip['thumbnail_url'].split('-preview')[0] + '.mp4'
-			title = clip['title']
+			clip_url = clip['thumbnail_url'].split('-preview')[0] + '.mp4'
+			clip_title = clip['title']
 			
 			cout = 1
 			
 			# handle duplicate clip titles
-			if title in clips_data:
-				newTitle = title + ' ({0})'.format(cout)
+			if clip_title in clips_data:
+				newTitle = clip_title + ' ({0})'.format(cout)
 				while (newTitle in clips_data):
 					cout = cout + 1
-					newTitle = title + ' ({0})'.format(cout)
+					newTitle = clip_title + ' ({0})'.format(cout)
 				title = newTitle
 				
-			clips_data[title] = url
+			clips_data[clip_title] = clip_url
 		
-		response = requests.get('https://api.twitch.tv/helix/clips',
-							headers={'Authorization': 'Bearer ' + oauth, 'Client-ID': client_id},
-							params={'broadcaster_id': broadcaster_id, 'first': '100', 'after': response.json()['pagination']['cursor']})
+		url = current_app.config['BASE_URL'] + 'clips'
+		headers = {'Authorization': 'Bearer ' + oauth, 'Client-ID': client_id}
+		params = {'broadcaster_id': broadcaster_id, 'first': '100', 'after': response.json()['pagination']['cursor']}
 		
-		# print(json.dumps(response.json(), indent=indent))
+		response = requests.get(url, headers=headers, params=params)
+		# print(json.dumps(response.json(), indent=INDENT))
 	
 	# the last query will not produce a cursor
 	clips = response.json()['data']
 	for clip in clips:
-		url = clip['thumbnail_url'].split('-preview')[0] + '.mp4'
-		title = clip['title']
+		clip_url = clip['thumbnail_url'].split('-preview')[0] + '.mp4'
+		clip_title = clip['title']
 		
 		cout = 1
 		
 		# handle duplicate clip titles
-		if title in clips_data:
-			newTitle = title + ' ({0})'.format(cout)
+		if clip_title in clips_data:
+			newTitle = clip_title + ' ({0})'.format(cout)
 			while (newTitle in clips_data):
 				cout = cout + 1
-				newTitle = title + ' ({0})'.format(cout)
-			title = newTitle
+				newTitle = clip_title + ' ({0})'.format(cout)
+			clip_title = newTitle
 			
-		clips_data[title] = url
+		clips_data[clip_title] = clip_url
 		
 	print('{0} clips found. '.format(len(clips_data)))
 	return clips_data
